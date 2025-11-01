@@ -101,7 +101,7 @@ const Footer: React.FC = () => {
             <p className="mb-4 text-gray-300">Get the latest news, events, and research updates.</p>
             <form onSubmit={handleNewsletterSubmit}>
               <div className="flex">
-                <input type="email" name="email" placeholder="Your Email" required className="w-full rounded-l-md px-3 py-2 text-deep-navy focus:outline-none focus:ring-2 focus:ring-bitcoin-orange" />
+                <input type="email" name="email" placeholder="Your Email" required className="w-full rounded-l-md px-3 py-2 text-deep-navy dark:bg-slate-700 dark:text-white dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bitcoin-orange" />
                 <button type="submit" disabled={status === 'submitting'} className="bg-bitcoin-orange text-white font-bold px-4 py-2 rounded-r-md hover:bg-gold-accent transition-colors disabled:opacity-50">
                   {status === 'submitting' ? '...' : 'Sign Up'}
                 </button>

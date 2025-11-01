@@ -37,113 +37,157 @@ const getFilesUrls = (prop: any): string[] => {
 
 // --- Parsers for each Notion Database Type ---
 
+const safelyParse = <T>(page: NotionPage, parser: (page: NotionPage) => T): T | null => {
+    try {
+        return parser(page);
+    } catch (e) {
+        console.error(`Failed to parse Notion page ${page.id}:`, e);
+        return null;
+    }
+}
+
 export const parseNotionBlogPosts = (notionData: QueryDatabaseResponse) => {
-  return notionData.results.map((page: NotionPage) => ({
-    id: page.id,
-    title: getTitle(getProperty(page, 'Title')),
-    author: getText(getProperty(page, 'Author')),
-    date: getDate(getProperty(page, 'Date')),
-    category: getSelect(getProperty(page, 'Category')),
-    imageUrl: getFileUrl(getProperty(page, 'Image')),
-    excerpt: getText(getProperty(page, 'Excerpt')),
-  }));
+  return notionData.results
+    .map((page: NotionPage) => safelyParse(page, p => ({
+        id: p.id,
+        title: getTitle(getProperty(p, 'Title')),
+        author: getText(getProperty(p, 'Author')),
+        date: getDate(getProperty(p, 'Date')),
+        category: getSelect(getProperty(p, 'Category')),
+        imageUrl: getFileUrl(getProperty(p, 'Image')),
+        excerpt: getText(getProperty(p, 'Excerpt')),
+    })))
+    .filter(Boolean);
 };
 
 export const parseNotionResearchPapers = (notionData: QueryDatabaseResponse) => {
-  return notionData.results.map((page: NotionPage) => ({
-    id: page.id,
-    title: getTitle(getProperty(page, 'Title')),
-    authors: getMultiSelect(getProperty(page, 'Authors')),
-    summary: getText(getProperty(page, 'Summary')),
-    publicationDate: getDate(getProperty(page, 'Date')),
-    category: getSelect(getProperty(page, 'Category')),
-  }));
+  return notionData.results
+    .map((page: NotionPage) => safelyParse(page, p => ({
+        id: p.id,
+        title: getTitle(getProperty(p, 'Title')),
+        authors: getMultiSelect(getProperty(p, 'Authors')),
+        summary: getText(getProperty(p, 'Summary')),
+        publicationDate: getDate(getProperty(p, 'Date')),
+        category: getSelect(getProperty(p, 'Category')),
+        fileUrl: getFileUrl(getProperty(p, 'File')),
+    })))
+    .filter(Boolean);
 };
 
 export const parseNotionPartners = (notionData: QueryDatabaseResponse) => {
-  return notionData.results.map((page: NotionPage) => ({
-    id: page.id,
-    name: getTitle(getProperty(page, 'Name')),
-    logoUrl: getFileUrl(getProperty(page, 'Logo')),
-    role: getText(getProperty(page, 'Role')),
-    url: getURL(getProperty(page, 'Website URL')),
-    logoBg: getText(getProperty(page, 'Style')) === 'dark' ? 'dark' : undefined,
-  }));
+  return notionData.results
+    .map((page: NotionPage) => safelyParse(page, p => ({
+        id: p.id,
+        name: getTitle(getProperty(p, 'Name')),
+        logoUrl: getFileUrl(getProperty(p, 'Logo')),
+        role: getText(getProperty(p, 'Role')),
+        url: getURL(getProperty(p, 'Website URL')),
+        logoBg: getText(getProperty(p, 'Style')) === 'dark' ? 'dark' : undefined,
+    })))
+    .filter(Boolean);
 };
 
 export const parseNotionEvents = (notionData: QueryDatabaseResponse) => {
-  return notionData.results.map((page: NotionPage) => ({
-    id: page.id,
-    title: getTitle(getProperty(page, 'Title')),
-    date: getDate(getProperty(page, 'Date')),
-    venue: getText(getProperty(page, 'Venue')),
-    type: (getSelect(getProperty(page, 'Type'))?.toLowerCase() === 'upcoming' ? 'upcoming' : 'past') as 'upcoming' | 'past',
-    imageUrl: getFileUrl(getProperty(page, 'Image')),
-    youtubeUrl: getURL(getProperty(page, 'YouTube URL')),
-  }));
+  return notionData.results
+    .map((page: NotionPage) => safelyParse(page, p => ({
+        id: p.id,
+        title: getTitle(getProperty(p, 'Title')),
+        date: getDate(getProperty(p, 'Date')),
+        venue: getText(getProperty(p, 'Venue')),
+        type: (getSelect(getProperty(p, 'Type'))?.toLowerCase() === 'upcoming' ? 'upcoming' : 'past') as 'upcoming' | 'past',
+        imageUrl: getFileUrl(getProperty(p, 'Image')),
+        youtubeUrl: getURL(getProperty(p, 'YouTube URL')),
+    })))
+    .filter(Boolean);
 };
 
 export const parseNotionCourses = (notionData: QueryDatabaseResponse) => {
-  return notionData.results.map((page: NotionPage) => ({
-    id: page.id,
-    title: getTitle(getProperty(page, 'Title')),
-    description: getText(getProperty(page, 'Description')),
-    imageUrl: getFileUrl(getProperty(page, 'Image')),
-    level: getSelect(getProperty(page, 'Level')),
-  }));
+  return notionData.results
+    .map((page: NotionPage) => safelyParse(page, p => ({
+        id: p.id,
+        title: getTitle(getProperty(p, 'Title')),
+        description: getText(getProperty(p, 'Description')),
+        imageUrl: getFileUrl(getProperty(p, 'Image')),
+        level: getSelect(getProperty(p, 'Level')),
+    })))
+    .filter(Boolean);
 };
 
 export const parseNotionBooks = (notionData: QueryDatabaseResponse) => {
-  return notionData.results.map((page: NotionPage) => ({
-    id: page.id,
-    title: getTitle(getProperty(page, 'Title')),
-    author: getText(getProperty(page, 'Author')),
-    imageUrl: getFileUrl(getProperty(page, 'Image')),
-    description: getText(getProperty(page, 'Description')),
-    link: getURL(getProperty(page, 'Purchase Link')),
-  }));
+  return notionData.results
+    .map((page: NotionPage) => safelyParse(page, p => ({
+        id: p.id,
+        title: getTitle(getProperty(p, 'Title')),
+        author: getText(getProperty(p, 'Author')),
+        imageUrl: getFileUrl(getProperty(p, 'Image')),
+        description: getText(getProperty(p, 'Description')),
+        link: getURL(getProperty(p, 'Purchase Link')),
+    })))
+    .filter(Boolean);
 };
 
 export const parseNotionSiteContent = (notionData: QueryDatabaseResponse) => {
-  return notionData.results.map((page: NotionPage) => ({
-    id: page.id,
-    pageName: getTitle(getProperty(page, 'Page Name')),
-    mainImage: getFileUrl(getProperty(page, 'Main Image')),
-    imageGallery: getFilesUrls(getProperty(page, 'Image Gallery')),
-  }));
+  return notionData.results
+    .map((page: NotionPage) => safelyParse(page, p => ({
+        id: p.id,
+        pageName: getTitle(getProperty(p, 'Page Name')),
+        mainImage: getFileUrl(getProperty(p, 'Main Image')),
+        imageGallery: getFilesUrls(getProperty(p, 'Image Gallery')),
+    })))
+    .filter(Boolean);
 };
 
 
 // Creates the correct 'properties' object for a new Notion page based on form type and data
 export const createNotionPageProperties = (formType: string, data: any) => {
     const properties: any = {};
-    
-    // Determine the 'Title' property and its content based on form type
-    let titleKey = 'Title'; 
-    let titleContent = data.title || data.name || data.companyName || data.email || 'New Submission';
 
-    if (formType === 'contact') { titleKey = 'Name'; }
-    if (formType === 'partnership') { titleKey = 'Company Name'; }
-    if (formType === 'newsletter') { titleKey = 'Email'; }
+    // A robust mapping from form field names to Notion property names and types.
+    const fieldToNotionMap: { [key: string]: { name: string, type: 'title' | 'rich_text' | 'email' } } = {
+        // common fields
+        name: { name: 'Name', type: 'title' },
+        email: { name: 'Email', type: 'email' },
+        message: { name: 'Message', type: 'rich_text' },
+        // partnership form
+        companyName: { name: 'Company Name', type: 'title' },
+        contactEmail: { name: 'Email', type: 'email' },
+        // research form
+        title: { name: 'Title', type: 'title' },
+        fileName: { name: 'File Name', type: 'rich_text' },
+        // contact form
+        interest: { name: 'Interest', type: 'rich_text' },
+        // newsletter form
+        newsletterEmail: { name: 'Email', type: 'title' },
+    };
     
-    properties[titleKey] = { title: [{ text: { content: titleContent } }] };
+    // Determine the title property based on the form type
+    const titleField = {
+      contact: 'name',
+      partnership: 'companyName',
+      research: 'title',
+      newsletter: 'email',
+    }[formType] || 'name';
 
-    // Map other form fields to appropriate Notion property types
+
     for (const key in data) {
-        // Skip the field already used as the title
-        if (key.toLowerCase() === titleKey.toLowerCase().replace(/\s/g, '')) continue;
-        
+        const mapping = fieldToNotionMap[key];
         const value = data[key];
-        if (typeof value !== 'string' || value.trim() === '') continue;
 
-        const propertyName = Object.keys(data).find(k => k.toLowerCase() === key.toLowerCase()) || key;
-        const capitalizedPropName = propertyName.charAt(0).toUpperCase() + propertyName.slice(1);
-
-
-        if (key.toLowerCase().includes('email')) {
-            properties['Email'] = { email: value };
-        } else {
-            properties[capitalizedPropName] = { rich_text: [{ text: { content: value } }] };
+        if (!mapping || typeof value !== 'string' || value.trim() === '') continue;
+        
+        // Use the mapping's designated type, but force the title field to be 'title' type
+        const propertyType = key === titleField ? 'title' : mapping.type;
+        
+        switch(propertyType) {
+            case 'title':
+                properties[mapping.name] = { title: [{ text: { content: value } }] };
+                break;
+            case 'email':
+                properties[mapping.name] = { email: value };
+                break;
+            case 'rich_text':
+                properties[mapping.name] = { rich_text: [{ text: { content: value } }] };
+                break;
         }
     }
 

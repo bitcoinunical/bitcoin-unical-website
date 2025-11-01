@@ -6,6 +6,7 @@ export interface ResearchPaper {
   summary: string;
   publicationDate: string;
   category: 'Economics' | 'Mining' | 'Policy' | 'Energy' | 'Technology';
+  fileUrl?: string;
 }
 
 export interface BlogPost {

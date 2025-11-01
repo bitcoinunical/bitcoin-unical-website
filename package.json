@@ -3,13 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "echo 'Frontend is static; Vercel will build API functions automatically.'"
-  },
-  "dependencies": {
-    "@notionhq/client": "^2.2.14"
-  },
-  "devDependencies": {
-    "typescript": "^5.0.0",
-    "@vercel/node": "^3.0.0"
+    "build": "echo 'Vercel will build the frontend and API workspaces automatically.'"
   }
 }

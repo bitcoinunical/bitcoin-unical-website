@@ -6,40 +6,40 @@ import { Client } from '@notionhq/client';
 import * as NotionUtils from './utils';
 
 const getDbIdAndParser = (type: string | undefined | string[]) => {
-    const dbIdMap: { [key: string]: string | undefined } = {
-        blog: process.env.NOTION_BLOG_DB_ID,
-        research: process.env.NOTION_RESEARCH_DB_ID,
-        partners: process.env.NOTION_PARTNERS_DB_ID,
-        events: process.env.NOTION_EVENTS_DB_ID,
-        courses: process.env.NOTION_COURSES_DB_ID,
-        books: process.env.NOTION_BOOKS_DB_ID,
-        siteContent: process.env.NOTION_SITE_CONTENT_DB_ID,
+    const dbIdMap: { [key: string]: { id: string | undefined, parser: (data: any) => any} } = {
+        blog: { id: process.env.NOTION_BLOG_DB_ID, parser: NotionUtils.parseNotionBlogPosts },
+        research: { id: process.env.NOTION_RESEARCH_DB_ID, parser: NotionUtils.parseNotionResearchPapers },
+        partners: { id: process.env.NOTION_PARTNERS_DB_ID, parser: NotionUtils.parseNotionPartners },
+        events: { id: process.env.NOTION_EVENTS_DB_ID, parser: NotionUtils.parseNotionEvents },
+        courses: { id: process.env.NOTION_COURSES_DB_ID, parser: NotionUtils.parseNotionCourses },
+        books: { id: process.env.NOTION_BOOKS_DB_ID, parser: NotionUtils.parseNotionBooks },
+        siteContent: { id: process.env.NOTION_SITE_CONTENT_DB_ID, parser: NotionUtils.parseNotionSiteContent },
     };
     
-    const parserMap: { [key: string]: (data: any) => any } = {
-        blog: NotionUtils.parseNotionBlogPosts,
-        research: NotionUtils.parseNotionResearchPapers,
-        partners: NotionUtils.parseNotionPartners,
-        events: NotionUtils.parseNotionEvents,
-        courses: NotionUtils.parseNotionCourses,
-        books: NotionUtils.parseNotionBooks,
-        siteContent: NotionUtils.parseNotionSiteContent,
-    };
-
-    if (typeof type !== 'string' || !dbIdMap[type] || !parserMap[type]) {
-        return { databaseId: null, parser: null };
+    if (typeof type !== 'string' || !dbIdMap[type]) {
+        return { databaseId: null, parser: null, typeName: type };
     }
-    return { databaseId: dbIdMap[type], parser: parserMap[type] };
+    
+    const config = dbIdMap[type];
+    if (!config.id) {
+        return { databaseId: null, parser: null, typeName: type };
+    }
+
+    return { databaseId: config.id, parser: config.parser, typeName: type };
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { type, page } = req.query;
 
   const NOTION_API_KEY = process.env.NOTION_API_KEY;
-  const { databaseId, parser } = getDbIdAndParser(type);
+  const { databaseId, parser, typeName } = getDbIdAndParser(type);
 
-  if (!NOTION_API_KEY || !databaseId || !parser) {
-    return res.status(500).json({ message: 'Server configuration error or invalid type.' });
+  if (!NOTION_API_KEY) {
+    return res.status(500).json({ message: 'Server configuration error: NOTION_API_KEY is not set.' });
+  }
+
+  if (!databaseId || !parser) {
+    return res.status(500).json({ message: `Server configuration error: Database ID for type '${typeName}' is missing or invalid. Please check your .env variables.` });
   }
 
   const notion = new Client({ auth: NOTION_API_KEY });

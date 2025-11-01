@@ -31,15 +31,15 @@ const EventsPage: React.FC = () => {
   const filteredEvents = events.filter(e => e.type === activeTab);
 
   return (
-    <div className="py-16">
+    <div className="py-16 bg-white dark:bg-slate-900">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h1 className="font-poppins text-4xl font-bold text-deep-navy">Community Events</h1>
-          <p className="mt-4 text-lg text-gray-600">Join us for meetups, workshops, and bootcamps.</p>
+          <h1 className="font-poppins text-4xl font-bold text-deep-navy dark:text-white">Community Events</h1>
+          <p className="mt-4 text-lg text-gray-600 dark:text-gray-300">Join us for meetups, workshops, and bootcamps.</p>
         </div>
 
         {/* Tabs */}
-        <div className="flex justify-center border-b-2 mb-12">
+        <div className="flex justify-center border-b-2 dark:border-slate-700 mb-12">
           <button
             onClick={() => setActiveTab('upcoming')}
             className={`px-6 py-3 font-poppins font-bold text-lg transition-colors ${activeTab === 'upcoming' ? 'border-b-4 border-bitcoin-orange text-bitcoin-orange' : 'text-gray-500'}`}
@@ -63,17 +63,17 @@ const EventsPage: React.FC = () => {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredEvents.length > 0 ? filteredEvents.map((event) => (
               <Card key={event.id} className="flex flex-col">
-                <div className="w-full h-56 bg-gray-200 flex items-center justify-center">
+                <div className="w-full h-56 bg-gray-200 dark:bg-slate-700 flex items-center justify-center">
                   {event.imageUrl ? (
                     <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-gray-500">Image coming soon</span>
+                    <span className="text-gray-500 dark:text-gray-400">Image coming soon</span>
                   )}
                 </div>
                 <div className="p-6 flex flex-col flex-grow">
-                  <h3 className="font-poppins text-xl font-bold mb-2">{event.title}</h3>
-                  <p className="text-gray-600 font-semibold">{event.date}</p>
-                  <p className="text-gray-500 mb-4">{event.venue}</p>
+                  <h3 className="font-poppins text-xl font-bold mb-2 dark:text-white">{event.title}</h3>
+                  <p className="text-gray-600 dark:text-gray-300 font-semibold">{event.date}</p>
+                  <p className="text-gray-500 dark:text-gray-400 mb-4">{event.venue}</p>
                   <div className="mt-auto">
                   {event.type === 'upcoming' ? (
                     <Button>Register Now</Button>
@@ -89,7 +89,7 @@ const EventsPage: React.FC = () => {
               </Card>
             )) : (
               <div className="col-span-full text-center py-12">
-                <p className="text-xl text-gray-500">No {activeTab} events at the moment. Check back soon!</p>
+                <p className="text-xl text-gray-500 dark:text-gray-400">No {activeTab} events at the moment. Check back soon!</p>
               </div>
             )}
           </div>

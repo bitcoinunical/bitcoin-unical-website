@@ -4,6 +4,7 @@ import { NAV_LINKS } from '../constants';
 import { FiMenu, FiX } from 'react-icons/fi';
 import Button from './Button';
 import Logo from './Logo';
+import ThemeToggle from './ThemeToggle';
 
 const Header: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -30,11 +31,13 @@ const Header: React.FC = () => {
             ))}
           </nav>
 
-          <div className="hidden md:block">
+          <div className="hidden md:flex items-center space-x-4">
+            <ThemeToggle />
             <Button to="/partnership" variant="secondary">Become a Sponsor</Button>
           </div>
 
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center space-x-4">
+            <ThemeToggle />
             <button onClick={() => setIsOpen(!isOpen)} aria-label="Toggle menu">
               {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
             </button>
