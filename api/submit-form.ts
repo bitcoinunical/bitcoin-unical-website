@@ -1,26 +1,25 @@
 // This serverless function securely receives form data from the website
 // and creates a new page in the corresponding Notion database.
 
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { Client } from '@notionhq/client';
 import { createNotionPageProperties } from './utils';
 
-export default async function handler(req: Request) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ message: 'Method not allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    res.setHeader('Allow', ['POST']);
+    return res.status(405).json({ message: 'Method not allowed' });
   }
   
   const NOTION_API_KEY = process.env.NOTION_API_KEY;
   if (!NOTION_API_KEY) {
-    return new Response(JSON.stringify({ message: 'Server configuration error: API key missing.' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return res.status(500).json({ message: 'Server configuration error: API key missing.' });
   }
+  
+  const notion = new Client({ auth: NOTION_API_KEY });
 
   try {
-    const { formType, data } = await req.json();
+    const { formType, data } = req.body;
 
     const dbIdMap: { [key: string]: string | undefined } = {
       contact: process.env.NOTION_CONTACT_DB_ID,
@@ -32,43 +31,20 @@ export default async function handler(req: Request) {
     const databaseId = dbIdMap[formType];
 
     if (!databaseId) {
-      return new Response(JSON.stringify({ message: `Server configuration error: Database ID for form type '${formType}' is missing.` }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return res.status(500).json({ message: `Server configuration error: Database ID for form type '${formType}' is missing.` });
     }
 
     const properties = createNotionPageProperties(formType, data);
 
-    const response = await fetch('https://api.notion.com/v1/pages', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${NOTION_API_KEY}`,
-        'Notion-Version': '2022-06-28',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    await notion.pages.create({
         parent: { database_id: databaseId },
         properties: properties,
-      }),
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      console.error('Notion API Error:', error);
-      throw new Error('Failed to submit to Notion.');
-    }
-
-    return new Response(JSON.stringify({ message: 'Submission received successfully!' }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return res.status(200).json({ message: 'Submission received successfully!' });
 
   } catch (error: any) {
-    console.error('Submission Error:', error);
-    return new Response(JSON.stringify({ message: error.message || 'An internal server error occurred.' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    console.error('Submission Error:', error.body || error.message);
+    return res.status(500).json({ message: 'Failed to submit to Notion.' });
   }
 }

@@ -1,10 +1,11 @@
-
 // This is a universal serverless function that acts as our backend.
 // It securely fetches data from various Notion databases and sends it to the frontend.
 
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { Client } from '@notionhq/client';
 import * as NotionUtils from './utils';
 
-const getDbIdAndParser = (type: string | null) => {
+const getDbIdAndParser = (type: string | undefined | string[]) => {
     const dbIdMap: { [key: string]: string | undefined } = {
         blog: process.env.NOTION_BLOG_DB_ID,
         research: process.env.NOTION_RESEARCH_DB_ID,
@@ -25,26 +26,23 @@ const getDbIdAndParser = (type: string | null) => {
         siteContent: NotionUtils.parseNotionSiteContent,
     };
 
-    if (!type || !dbIdMap[type] || !parserMap[type]) {
+    if (typeof type !== 'string' || !dbIdMap[type] || !parserMap[type]) {
         return { databaseId: null, parser: null };
     }
     return { databaseId: dbIdMap[type], parser: parserMap[type] };
 };
 
-export default async function handler(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const type = searchParams.get('type');
-  const page = searchParams.get('page'); // For siteContent
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const { type, page } = req.query;
 
   const NOTION_API_KEY = process.env.NOTION_API_KEY;
   const { databaseId, parser } = getDbIdAndParser(type);
 
   if (!NOTION_API_KEY || !databaseId || !parser) {
-    return new Response(JSON.stringify({ message: 'Server configuration error or invalid type.' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return res.status(500).json({ message: 'Server configuration error or invalid type.' });
   }
+
+  const notion = new Client({ auth: NOTION_API_KEY });
 
   // Construct the filter for the Notion query
   let filter: any = {
@@ -59,7 +57,7 @@ export default async function handler(req: Request) {
       filter = {
           property: 'Page Name',
           title: {
-              equals: page,
+              equals: page as string,
           },
       };
   }
@@ -67,41 +65,26 @@ export default async function handler(req: Request) {
   // Sort by date if it's a blog or research query
   const sorts = (type === 'blog' || type === 'research' || type === 'events') ? [{
       property: 'Date',
-      direction: 'descending',
+      direction: 'descending' as const,
   }] : undefined;
 
   try {
-    const response = await fetch(`https://api.notion.com/v1/databases/${databaseId}/query`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${NOTION_API_KEY}`,
-        'Notion-Version': '2022-06-28',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ filter, sorts }),
+    const response = await notion.databases.query({
+        database_id: databaseId,
+        filter: filter,
+        sorts: sorts,
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      console.error('Notion API Error:', error);
-      throw new Error('Failed to fetch from Notion.');
-    }
-
-    const notionData = await response.json();
-    const parsedData = parser(notionData);
+    const parsedData = parser(response);
 
     // If it's site content, we expect a single object, not an array
     const finalData = (type === 'siteContent' && Array.isArray(parsedData)) ? parsedData[0] || null : parsedData;
 
-    return new Response(JSON.stringify(finalData), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate');
+    return res.status(200).json(finalData);
 
   } catch (error: any) {
-    return new Response(JSON.stringify({ message: error.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    console.error('Notion API Error:', error.body || error.message);
+    return res.status(500).json({ message: 'Failed to fetch from Notion.' });
   }
 }
