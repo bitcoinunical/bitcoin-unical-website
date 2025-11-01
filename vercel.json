@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "api/get-content.ts": {
+      "runtime": "edge"
+    },
+    "api/submit-form.ts": {
+      "runtime": "edge"
+    }
+  }
+}
