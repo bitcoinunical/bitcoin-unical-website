@@ -3,14 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { NAV_LINKS, SOCIAL_LINKS } from '../constants';
 import Logo from './Logo';
-import { submitFormData, fetchPartners } from '../lib/api';
+import { fetchPartners } from '../lib/api';
 import type { Partner } from '../types';
 
-type FormStatus = 'idle' | 'submitting' | 'success' | 'error';
-
 const Footer: React.FC = () => {
-  const [status, setStatus] = useState<FormStatus>('idle');
-  const [message, setMessage] = useState('');
   const [partners, setPartners] = useState<Partner[]>([]);
 
   useEffect(() => {
@@ -24,31 +20,6 @@ const Footer: React.FC = () => {
     };
     loadPartners();
   }, []);
-
-  const handleNewsletterSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setStatus('submitting');
-    setMessage('');
-
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get('email');
-
-    try {
-      const response = await submitFormData('newsletter', { email });
-      if (response.success) {
-        setStatus('success');
-        setMessage('Thank you for subscribing!');
-        e.currentTarget.reset();
-      } else {
-        setStatus('error');
-        setMessage(response.message || 'An error occurred.');
-      }
-    } catch (error) {
-      setStatus('error');
-      setMessage('Subscription failed. Please try again.');
-    }
-  };
-
 
   return (
     <footer className="bg-deep-navy text-white pt-16 pb-8">
@@ -99,15 +70,14 @@ const Footer: React.FC = () => {
           <div>
             <h3 className="font-poppins text-lg font-bold mb-4">Join our Newsletter</h3>
             <p className="mb-4 text-gray-300">Get the latest news, events, and research updates.</p>
-            <form onSubmit={handleNewsletterSubmit}>
-              <div className="flex">
-                <input type="email" name="email" placeholder="Your Email" required className="w-full rounded-l-md px-3 py-2 text-deep-navy dark:bg-slate-700 dark:text-white dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bitcoin-orange" />
-                <button type="submit" disabled={status === 'submitting'} className="bg-bitcoin-orange text-white font-bold px-4 py-2 rounded-r-md hover:bg-gold-accent transition-colors disabled:opacity-50">
-                  {status === 'submitting' ? '...' : 'Sign Up'}
-                </button>
-              </div>
-               {message && <p className={`mt-2 text-sm ${status === 'success' ? 'text-green-400' : 'text-red-400'}`}>{message}</p>}
-            </form>
+            <a
+              href="https://forms.gle/uuzenrBHDs4vraYB8"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold font-poppins py-3 px-6 rounded-lg transition-transform duration-300 ease-in-out transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-deep-navy focus:ring-gold-accent inline-block text-center bg-bitcoin-orange text-white hover:bg-orange-500"
+            >
+              Join our Newsletter
+            </a>
           </div>
         </div>
 

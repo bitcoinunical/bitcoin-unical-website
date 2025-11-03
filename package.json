@@ -1,8 +1,0 @@
-{
-  "name": "bitcoin-unical-website",
-  "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "build": "echo 'Vercel will build the frontend and API workspaces automatically.'"
-  }
-}

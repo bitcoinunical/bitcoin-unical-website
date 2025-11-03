@@ -1,13 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import type { Partner } from '../types';
-import { fetchPartners, submitFormData } from '../lib/api';
-import Button from '../components/Button';
-
-type FormStatus = 'idle' | 'submitting' | 'success' | 'error';
+import { fetchPartners } from '../lib/api';
 
 const PartnershipPage: React.FC = () => {
-  const [status, setStatus] = useState<FormStatus>('idle');
-  const [message, setMessage] = useState('');
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,30 +21,6 @@ const PartnershipPage: React.FC = () => {
     };
     loadPartners();
   }, []);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setStatus('submitting');
-    setMessage('');
-
-    const formData = new FormData(e.currentTarget);
-    const data = Object.fromEntries(formData.entries());
-
-    try {
-      const response = await submitFormData('partnership', data);
-      if (response.success) {
-        setStatus('success');
-        setMessage(response.message);
-        e.currentTarget.reset();
-      } else {
-        setStatus('error');
-        setMessage(response.message || 'An unknown error occurred.');
-      }
-    } catch (error) {
-      setStatus('error');
-      setMessage('Submission failed. Please try again later.');
-    }
-  };
 
   return (
     <div className="py-16 bg-white dark:bg-slate-900">
@@ -103,53 +74,44 @@ const PartnershipPage: React.FC = () => {
         <div className="my-24">
             <div className="border-t dark:border-slate-700 pt-16">
                  <h2 className="text-center font-poppins text-3xl font-bold text-deep-navy dark:text-white mb-12">Our Supporters</h2>
-                 <div className="flex flex-wrap justify-center items-center gap-x-12 gap-y-8">
-                    {partners.map((partner) => (
-                      partner.logoUrl && (
-                        <a
-                            key={partner.id}
-                            href={partner.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="group"
-                            title={partner.name}
-                        >
-                            <img 
-                                src={partner.logoUrl} 
-                                alt={`${partner.name} logo`}
-                                className={`max-h-12 object-contain grayscale group-hover:grayscale-0 transition-all duration-300 ease-in-out transform group-hover:scale-110 ${partner.logoBg === 'dark' ? 'bg-deep-navy p-2 rounded' : ''}`}
-                            />
-                        </a>
-                      )
-                    ))}
-                 </div>
+                 <div className="relative w-full overflow-hidden group">
+                    <div className="flex animate-marquee group-hover:[animation-play-state:paused] whitespace-nowrap">
+                       {[...partners, ...partners].map((partner, index) => (
+                          partner.logoUrl && (
+                            <a
+                                key={`${partner.id}-${index}`}
+                                href={partner.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="mx-8 flex-shrink-0"
+                                title={partner.name}
+                            >
+                                <img 
+                                    src={partner.logoUrl} 
+                                    alt={`${partner.name} logo`}
+                                    className={`max-h-12 object-contain grayscale hover:grayscale-0 transition-all duration-300 ease-in-out transform hover:scale-110 ${partner.logoBg === 'dark' ? 'bg-deep-navy p-2 rounded' : ''}`}
+                                />
+                            </a>
+                          )
+                        ))}
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div className="max-w-2xl mx-auto bg-light-grey dark:bg-slate-800 p-8 rounded-lg shadow-inner">
-            <h2 className="font-poppins text-3xl font-bold text-deep-navy dark:text-white mb-6 text-center">Partner With Us</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                    <label htmlFor="companyName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Company Name</label>
-                    <input type="text" id="companyName" name="companyName" required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-bitcoin-orange focus:border-bitcoin-orange dark:bg-slate-700 dark:border-slate-600 dark:text-white" />
-                </div>
-                <div>
-                    <label htmlFor="contactEmail" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Contact Email</label>
-                    <input type="email" id="contactEmail" name="contactEmail" required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-bitcoin-orange focus:border-bitcoin-orange dark:bg-slate-700 dark:border-slate-600 dark:text-white" />
-                </div>
-                <div>
-                    <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300">How would you like to partner?</label>
-                    <textarea id="message" name="message" rows={4} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-bitcoin-orange focus:border-bitcoin-orange dark:bg-slate-700 dark:border-slate-600 dark:text-white"></textarea>
-                </div>
-                <div className="text-center">
-                    <Button type="submit" variant="primary" disabled={status === 'submitting'}>
-                      {status === 'submitting' ? 'Submitting...' : 'Submit Inquiry'}
-                    </Button>
-                </div>
-                {message && (
-                  <p className={`mt-4 text-center text-sm ${status === 'success' ? 'text-green-600' : 'text-red-600'}`}>{message}</p>
-                )}
-            </form>
+        <div className="max-w-2xl mx-auto bg-light-grey dark:bg-slate-800 p-8 rounded-lg shadow-inner text-center">
+            <h2 className="font-poppins text-3xl font-bold text-deep-navy dark:text-white mb-6">Partner With Us</h2>
+             <p className="text-gray-600 dark:text-gray-300 mb-8">
+              We use Google Forms to reliably capture all partnership inquiries. Clicking the button below will take you to our official form.
+            </p>
+            <a
+              href="https://forms.gle/fmXgmE7Dmpu6bghZ7"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold font-poppins py-3 px-6 rounded-lg transition-transform duration-300 ease-in-out transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gold-accent inline-block text-center bg-bitcoin-orange text-white hover:bg-orange-500"
+            >
+              Submit Inquiry Here
+            </a>
         </div>
       </div>
     </div>

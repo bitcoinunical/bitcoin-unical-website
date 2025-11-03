@@ -1,27 +1,6 @@
-
-import React, { useState, useEffect } from 'react';
-import { fetchSiteContent } from '../lib/api';
+import React from 'react';
 
 const AboutPage: React.FC = () => {
-  const [galleryImages, setGalleryImages] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const loadContent = async () => {
-      try {
-        setLoading(true);
-        const content = await fetchSiteContent('about');
-        if (content && content.imageGallery) {
-          setGalleryImages(content.imageGallery);
-        }
-      } catch (err) {
-        console.error("Failed to load About page content", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadContent();
-  }, []);
 
   const milestones = [
     { year: 'Nov 2024', event: 'Community was founded.' },
@@ -81,17 +60,19 @@ const AboutPage: React.FC = () => {
 
 
         {/* Photo Gallery */}
-        <div>
+        <div className="text-center">
           <h2 className="text-center font-poppins text-3xl font-bold text-deep-navy dark:text-white mb-8">Our Community in Action</h2>
-          {loading ? (
-            <p className="text-center">Loading gallery...</p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {galleryImages.map((src, index) => (
-                <img key={index} src={src} alt={`Community action ${index + 1}`} className="rounded-lg shadow-md w-full h-64 object-cover" />
-              ))}
-            </div>
-          )}
+          <p className="text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
+            See photos from our latest meetups, bootcamps, and events. Our official gallery is the best place to see our community come to life.
+          </p>
+          <a
+            href="https://BitcoinUnical.pixieset.com/bitnoobdevbootcamp/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-bold font-poppins py-3 px-6 rounded-lg transition-transform duration-300 ease-in-out transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gold-accent inline-block text-center bg-bitcoin-orange text-white hover:bg-orange-500"
+          >
+            View Full Gallery
+          </a>
         </div>
       </div>
     </div>
